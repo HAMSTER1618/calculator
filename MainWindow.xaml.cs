@@ -128,7 +128,6 @@ namespace calculator
                 var left = acc; // keep for equation line
                 if (!ApplyPending()) return;
                 equationTop = $"{OperationManager.Format(left)} {lastOp} {OperationManager.Format(lastOperand)} =";
-                //pendingOp = null;
             }
             else if (lastOp != null)
             {
