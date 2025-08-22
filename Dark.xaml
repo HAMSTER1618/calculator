@@ -6,6 +6,8 @@
     <SolidColorBrush x:Key="Brush.Accent"     Color="#006398" />
     <SolidColorBrush x:Key="Toggle.IconBrush" Color="#6BC4CA" />
 
+    <SolidColorBrush x:Key="Button.HoverBackground" Color="#002366" />
+    <SolidColorBrush x:Key="Button.PressedBackground" Color="#001538" />
     <SolidColorBrush x:Key="Button.Background" Color="#001A4A" />
     <SolidColorBrush x:Key="Button.Foreground" Color="#6BC4CA" />
 
@@ -30,5 +32,15 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background"
+                        Value="{DynamicResource Button.HoverBackground}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background"
+                        Value="{DynamicResource Button.PressedBackground}" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
 </ResourceDictionary>
