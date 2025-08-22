@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using calculator;
+using System.Windows.Input;
 
 namespace calculator
 {
@@ -122,20 +123,42 @@ namespace calculator
         {
             if (pendingOp != null)
             {
-                if (!TryGetDisplay(out lastOperand)) return;
-                lastOp = pendingOp;
+                double right;
 
-                var left = acc; // keep for equation line
-                if (!ApplyPending()) return;
-                equationTop = $"{OperationManager.Format(left)} {lastOp} {OperationManager.Format(lastOperand)} =";
-            }
-            else if (lastOp != null)
-            {
-                if (!SafeCompute(lastOp, lastOperand)) return;
+                if (isEntering)
+                {
+                    if (!TryGetDisplay(out right)) return;
+                    lastOperand = right;          // remember for repeated "="
+                }
+                else
+                {
+                    // User pressed "=" without typing the right operand:
+                    lastOperand = acc;
+                }
+
+                lastOp = pendingOp;               // remember operator for repeated "="
+                var leftForEq = acc;              // for the equation line
+
+                acc = OperationManager.Compute(acc, pendingOp, lastOperand, SetError);
                 display = OperationManager.Format(acc);
-                equationTop = $"{OperationManager.Format(acc)} {lastOp} {OperationManager.Format(lastOperand)} =";
+                equationTop = $"{OperationManager.Format(leftForEq)} {lastOp} {OperationManager.Format(lastOperand)} =";
+
+                pendingOp = null;
+                isEntering = false;
+                return;
             }
-            isEntering = false;
+
+            // no pending op, but we have lastOp/lastOperand -> repeat operation
+            if (lastOp != null)
+            {
+                var leftForEq = acc;
+
+                acc = OperationManager.Compute(acc, lastOp, lastOperand, SetError);
+                display = OperationManager.Format(acc);
+                equationTop = $"{OperationManager.Format(leftForEq)} {lastOp} {OperationManager.Format(lastOperand)} =";
+
+                isEntering = false;
+            }
         }
 
         private void OnOperator(string op)
@@ -218,6 +241,76 @@ namespace calculator
             Render();
         }
 
+        private void OnPreviewKeyDown(object? sender, KeyEventArgs e)
+        {
+            string? token = null;
+            //NumPad
+            if (e.Key >= Key.NumPad0 && e.Key <= Key.NumPad9)
+            {
+                token = ((int?)(e.Key - Key.NumPad0)).ToString();
+            }
+            else
+            {
+                switch (e.Key)
+                {
+                    // NumPad operators
+                    case Key.Add: token = "+"; break;
+                    case Key.Subtract: token = "-"; break;
+                    case Key.Multiply: token = "*"; break;
+                    case Key.Divide: token = "/"; break;
+                    case Key.Decimal: token = "."; break;
+
+                    // Confirm / edit / clear
+                    case Key.Enter: token = "="; break;
+                    case Key.Back: token = "BS"; break;
+                    case Key.Delete: token = "CE"; break;  // Windows: Delete == CE
+                    case Key.Escape: token = "C"; break;
+                    case Key.F9: token = "+/-"; break; // Windows: F9 toggles sign
+
+                    // Top-row operators (optional)
+                    case Key.OemPlus:
+                        token = (Keyboard.Modifiers & ModifierKeys.Shift) != 0 ? "+" : "=";
+                        break;
+
+                    case Key.OemMinus:
+                        token = "-"; break;
+                    case Key.Oem2:          // '/' on many layouts (US)
+                        token = "/"; break;
+                    case Key.OemPeriod:
+                    case Key.OemComma:
+                        token = "."; break;
+                }
+            }
+
+            if (token != null)
+            {
+                _controller.ProcessToken(token);
+                Render();
+                e.Handled = true;
+            }
+        }
+
+        // Printable characters (digits, + - * / . , % ^ =)
+        private void OnTextInput(object? sener, TextCompositionEventArgs e)
+        {
+            string t = e.Text;
+            string? token = t switch
+            {
+                "0" or "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" => t,
+                "." or "," => ".",
+                "+" or "-" or "*" or "/" => t,
+                "%" => "%",
+                "=" => "=",
+                "^" => "^",
+                _ => null
+            };
+            if (token is null) return;
+
+            _controller.ProcessToken(token);
+            Render();
+            e.Handled = true;
+        }
+
         // Sync UI with controller state (auto-scroll + adaptive font)
         private void Render()
         {
@@ -230,5 +323,7 @@ namespace calculator
             // memory flag ("M" when memory != 0)
             MemoryFlag.Text = _controller.HasMemory ? "M" : "";
         }
+
+        // Special keys and NumPad
     }
 }

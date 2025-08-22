@@ -8,7 +8,10 @@
         Title="Calculator" Height="550" Width="360"
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanMinimize"
-        Icon="/Image/calcicon.png">
+        Icon="/Image/calcicon.png"
+        PreviewKeyDown="OnPreviewKeyDown"
+        TextInput="OnTextInput"
+        Focusable="True">
     <Window.Resources>
         <Style TargetType="Button" x:Key="Buttons">
             <Setter Property="FontSize" Value="22" />
