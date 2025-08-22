@@ -1,0 +1,39 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Palette (keys used via DynamicResource) -->
+    <SolidColorBrush x:Key="Brush.Background" Color="#03969D" />
+    <SolidColorBrush x:Key="Brush.Foreground" Color="#6BC4CA" />
+    <SolidColorBrush x:Key="Brush.Accent"     Color="#33A1C8" />
+    <SolidColorBrush x:Key="Toggle.IconBrush" Color="#D2E7EC" />
+
+    <SolidColorBrush x:Key="Button.Background" Color="#0E527E" />
+    <SolidColorBrush x:Key="Button.Foreground" Color="#D2E7EC" />
+
+    <!-- Implicit Button style (applies to all Buttons) -->
+    <Style TargetType="Button">
+        <!-- font family from your embedded font -->
+        <Setter Property="FontFamily" Value="pack://application:,,,/Resources/Fonts/#Edu NSW ACT Cursive Medium" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="Foreground" Value="{DynamicResource Button.Foreground}" />
+        <Setter Property="Background" Value="{DynamicResource Button.Background}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Margin" Value="3" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <!-- Rounded pill button; picks colors from Button.Background/Foreground -->
+                    <Border CornerRadius="50"
+                  Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}">
+                        <ContentPresenter HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        RecognizesAccessKey="True" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

@@ -1,0 +1,34 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Palette (keys used via DynamicResource) -->
+    <SolidColorBrush x:Key="Brush.Background" Color="#001A4A" />
+    <SolidColorBrush x:Key="Brush.Foreground" Color="#D2E7EC" />
+    <SolidColorBrush x:Key="Brush.Accent"     Color="#006398" />
+    <SolidColorBrush x:Key="Toggle.IconBrush" Color="#6BC4CA" />
+
+    <SolidColorBrush x:Key="Button.Background" Color="#001A4A" />
+    <SolidColorBrush x:Key="Button.Foreground" Color="#6BC4CA" />
+
+    <!-- Same implicit Button style (can be copied or referenced) -->
+    <Style TargetType="Button">
+        <Setter Property="FontFamily" Value="pack://application:,,,/Resources/Fonts/#Edu NSW ACT Cursive Medium" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="Foreground" Value="{DynamicResource Button.Foreground}" />
+        <Setter Property="Background" Value="{DynamicResource Button.Background}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Margin" Value="3" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border CornerRadius="50"
+                  Background="{TemplateBinding Background}">
+                        <ContentPresenter HorizontalAlignment="Center"
+                              VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

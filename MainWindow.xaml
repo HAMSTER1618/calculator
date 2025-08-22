@@ -3,19 +3,103 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:calculator"
         mc:Ignorable="d"
         Title="Calculator" Height="550" Width="360"
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanMinimize"
-        Icon="/Image/calcicon.png"
+        Icon="pack://application:,,,/Image/calcicon.png"
         PreviewKeyDown="OnPreviewKeyDown"
         TextInput="OnTextInput"
-        Focusable="True">
+        Focusable="True"
+        Background="{DynamicResource Brush.Background}">
+
     <Window.Resources>
-        <Style TargetType="Button" x:Key="Buttons">
-            <Setter Property="FontSize" Value="22" />
-            <Setter Property="FontWeight" Value="Bold" />
+
+        <!-- Toggle Switch Style -->
+
+        <Style x:Key="ToggleSwitch" TargetType="ToggleButton">
+            <Setter Property="Width" Value="50" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Grid x:Name="Root">
+                            <!-- Track -->
+                            <Border x:Name="Track"
+                                  CornerRadius="16"
+                                  Background="{DynamicResource Button.Background}"
+                                  BorderBrush="{DynamicResource Toggle.IconBrush}"
+                                  BorderThickness="1.5" />
+
+                            <!-- Thumb -->
+                            <Border x:Name="Thumb" Width="26" Height="26" CornerRadius="20" Margin="-18,0,0,0"
+                                    Background="{DynamicResource Brush.Accent}">
+                                <Border.RenderTransform>
+                                    <TranslateTransform x:Name="ThumbTransform" X="0" />
+                                </Border.RenderTransform>
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="5" ShadowDepth="2" Opacity="0" />
+                                </Border.Effect>
+                            </Border>
+
+                            <!-- Icons -->
+                            <Grid Margin="8,0" IsHitTestVisible="False">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition />
+                                    <ColumnDefinition />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="☀" Opacity="0.7" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource Toggle.IconBrush}"
+                                           HorizontalAlignment="Left" />
+                                <TextBlock Text="🌙" Grid.Column="1" Opacity="0.7" VerticalAlignment="Center"
+                                            HorizontalAlignment="Right"
+                                           Foreground="{DynamicResource Toggle.IconBrush}" />
+                            </Grid>
+
+                            <!-- Visual states with animations -->
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CheckStates">
+                                    <VisualState x:Name="Unchecked">
+                                        <Storyboard>
+                                            <!-- thumb slide left -->
+                                            <DoubleAnimation Storyboard.TargetName="ThumbTransform"
+                                   Storyboard.TargetProperty="X"
+                                   To="0" Duration="0:0:0.20">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseInOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <!-- track color back to base -->
+                                            <ColorAnimation Storyboard.TargetName="Track"
+                                  Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                  To="{Binding Background.(SolidColorBrush.Color), RelativeSource={RelativeSource TemplatedParent}}"
+                                  Duration="0:0:0.20" />
+                                        </Storyboard>
+                                    </VisualState>
+
+                                    <VisualState x:Name="Checked">
+                                        <Storyboard>
+                                            <!-- thumb slide right -->
+                                            <DoubleAnimation Storyboard.TargetName="ThumbTransform"
+                                   Storyboard.TargetProperty="X"
+                                   To="18" Duration="0:0:0.20">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseInOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <!-- track tint -->
+                                            <ColorAnimation Storyboard.TargetName="Track"
+                                  Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                  To="#223579FF" Duration="0:0:0.20" />
+                                        </Storyboard>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </Window.Resources>
 
@@ -24,78 +108,93 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="17*" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="123*" />
         </Grid.RowDefinitions>
+
         <!-- Top line: memory flag (left) + expression (right) -->
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="25" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
+
+            <ToggleButton x:Name="ThemeToggle"
+                          Grid.Column="0"
+                          Style="{StaticResource ToggleSwitch}"
+                          ToolTip="Přepnout téma"
+                          Checked="ThemeToggle_Checked"
+                          Unchecked="ThemeToggle_Unchecked" />
+
             <TextBlock x:Name="MemoryFlag"
-                       Grid.Column="0" Margin="0,2,8,0"
-                       Foreground="#777" FontSize="14" VerticalAlignment="Center" />
+                       Grid.Column="1" Margin="0,0,5,0"
+                       Foreground="#001A4A" FontSize="14" VerticalAlignment="Center" />
+
             <TextBlock x:Name="Expression"
-                       Grid.Column="1" Text=""
-                       FontSize="14" Foreground="#777"
+                       Grid.Column="2" Text=""
+                       FontSize="14" Foreground="{DynamicResource Button.Foreground}"
                        TextAlignment="Right" VerticalAlignment="Center" Height="42" />
         </Grid>
 
-        <!-- Big display (TextBox to auto-scroll to the end) -->
+        <!-- Big display -->
         <Border Grid.Row="1" BorderBrush="#DDD"
                 BorderThickness="0,0,0,1"
-                Padding="0,6,0,6">
+                Padding="3,6,3,6"
+                CornerRadius="20"
+                Margin="0,0,0,5">
             <Viewbox Stretch="Uniform" StretchDirection="DownOnly"
                      HorizontalAlignment="Right">
                 <TextBlock x:Name="DisplayText"
-               Text="0"
-               FontWeight="Bold"
-               TextAlignment="Right"
-               Margin="0"
-               Padding="0"
-                FontSize="40" />
+                           Text="0"
+                           FontWeight="Bold"
+                           TextAlignment="Right"
+                           Margin="0"
+                           Padding="0"
+                           FontSize="40"
+                           Foreground="{DynamicResource Button.Foreground}" />
             </Viewbox>
         </Border>
-        <Separator Grid.Row="2" Margin="5,5,5,5" />
 
-        <UniformGrid Grid.Row="3" Rows="1" Columns="4" Margin="0,0,0,9">
-            <Button Content="MC" Tag="MC" Click="OnButton" Style="{StaticResource Buttons}" />
-            <Button Content="MR" Tag="MR" Click="OnButton" Style="{StaticResource Buttons}" />
-            <Button Content="M+" Tag="M+" Click="OnButton" Style="{StaticResource Buttons}" />
-            <Button Content="M-" Tag="M-" Click="OnButton" Style="{StaticResource Buttons}" />
+        <UniformGrid Grid.Row="2" Rows="1" Columns="4" Margin="0,9,0,9">
+            <Button Content="MC" Tag="MC" Click="OnButton" />
+            <Button Content="MR" Tag="MR" Click="OnButton" />
+            <Button Content="M+" Tag="M+" Click="OnButton" />
+            <Button Content="M-" Tag="M-" Click="OnButton" />
         </UniformGrid>
-        <Separator Grid.Row="4" Margin="5,5,5,5" />
-        <UniformGrid Grid.Row="5" Rows="6" Columns="4" Margin="0,4,0,0">
-            <Button Content="%"   Tag="%"   Click="OnButton" Style="{StaticResource Buttons}" />
-            <Button Content="CE"  Tag="CE"  Click="OnButton" Style="{StaticResource Buttons}" />
-            <Button Content="C"   Tag="C"   Click="OnButton" Style="{StaticResource Buttons}" />
-            <Button Content="⌫"   Tag="BS"  Click="OnButton" Style="{StaticResource Buttons}" />
-            <Button Content="1/x" Tag="1/x" Click="OnButton" Style="{StaticResource Buttons}" />
-            <Button Content="x²"  Tag="x2"  Click="OnButton" Style="{StaticResource Buttons}" />
-            <Button Content="√"   Tag="sqrt" Click="OnButton" Style="{StaticResource Buttons}" />
-            <Button Content="÷"   Tag="/"   Click="OnButton" Style="{StaticResource Buttons}" />
 
-            <Button Content="7"   Tag="7"   Click="OnButton" Style="{StaticResource Buttons}" />
-            <Button Content="8"   Tag="8"   Click="OnButton" Style="{StaticResource Buttons}" />
-            <Button Content="9"   Tag="9"   Click="OnButton" Style="{StaticResource Buttons}" />
-            <Button Content="×"   Tag="*"   Click="OnButton" Style="{StaticResource Buttons}" />
+        <Separator Grid.Row="3" Margin="5,5,5,5" Background="White" />
 
-            <Button Content="4"   Tag="4"   Click="OnButton" Style="{StaticResource Buttons}" />
-            <Button Content="5"   Tag="5"   Click="OnButton" Style="{StaticResource Buttons}" />
-            <Button Content="6"   Tag="6"   Click="OnButton" Style="{StaticResource Buttons}" />
-            <Button Content="−"   Tag="-"   Click="OnButton" Style="{StaticResource Buttons}" />
+        <UniformGrid Grid.Row="4" Rows="6" Columns="4" Margin="2">
+            <Button Content="%"   Tag="%"   Click="OnButton" />
+            <Button Content="CE"  Tag="CE"  Click="OnButton" />
+            <Button Content="C"   Tag="C"   Click="OnButton" />
+            <Button Content="⌫"   Tag="BS"  Click="OnButton" />
 
-            <Button Content="1"   Tag="1"   Click="OnButton" Style="{StaticResource Buttons}" />
-            <Button Content="2"   Tag="2"   Click="OnButton" Style="{StaticResource Buttons}" />
-            <Button Content="3"   Tag="3"   Click="OnButton" Style="{StaticResource Buttons}" />
-            <Button Content="+"   Tag="+"   Click="OnButton" Style="{StaticResource Buttons}" />
+            <Button Content="1/x" Tag="1/x" Click="OnButton" />
+            <Button Content="x²"  Tag="x2"  Click="OnButton" />
+            <Button Content="√"   Tag="sqrt" Click="OnButton" />
+            <Button Content="÷"   Tag="/"   Click="OnButton" />
 
-            <Button Content="±"   Tag="+/-" Click="OnButton" Style="{StaticResource Buttons}" />
-            <Button Content="0"   Tag="0"   Click="OnButton" Style="{StaticResource Buttons}" />
-            <Button Content="."   Tag="."   Click="OnButton" Style="{StaticResource Buttons}" />
-            <Button Content="="   Tag="="   Click="OnButton" Style="{StaticResource Buttons}" />
+            <Button Content="7"   Tag="7"   Click="OnButton" />
+            <Button Content="8"   Tag="8"   Click="OnButton" />
+            <Button Content="9"   Tag="9"   Click="OnButton" />
+            <Button Content="×"   Tag="*"   Click="OnButton" />
+
+            <Button Content="4"   Tag="4"   Click="OnButton" />
+            <Button Content="5"   Tag="5"   Click="OnButton" />
+            <Button Content="6"   Tag="6"   Click="OnButton" />
+            <Button Content="−"   Tag="-"   Click="OnButton" />
+
+            <Button Content="1"   Tag="1"   Click="OnButton" />
+            <Button Content="2"   Tag="2"   Click="OnButton" />
+            <Button Content="3"   Tag="3"   Click="OnButton" />
+            <Button Content="+"   Tag="+"   Click="OnButton" />
+
+            <Button Content="±"   Tag="+/-" Click="OnButton" />
+            <Button Content="0"   Tag="0"   Click="OnButton" />
+            <Button Content="."   Tag="."   Click="OnButton" />
+            <Button Content="="   Tag="="   Click="OnButton" />
         </UniformGrid>
     </Grid>
 </Window>

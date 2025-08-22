@@ -1,7 +1,9 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
-using calculator;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
+using calculator;
 
 namespace calculator
 {
@@ -228,12 +230,53 @@ namespace calculator
         public MainWindow()
         {
             InitializeComponent();
+            LoadTheme();
             Render();
         }
 
-        // Simple adaptive font sizing like Windows
+        // Helper to swap theme dictionary at runtime
+        private void ApplyTheme(string theme) // "Light" or "Dark"
+        {
+            //read current color from Window
+            var oldBrush = (SolidColorBrush)(this.Background ?? Brushes.Transparent);
+            var oldColor = oldBrush.Color;
 
-        // Event handler for all buttons (Click="OnButton" in XAML)
+            //swap dictionaries (as you вже робиш)
+            var dicts = Application.Current.Resources.MergedDictionaries;
+            for (int i = dicts.Count - 1; i >= 0; i--)
+            {
+                var src = dicts[i].Source?.ToString() ?? "";
+                if (src.Contains("/Light.xaml") || src.Contains("/Dark.xaml"))
+                    dicts.RemoveAt(i);
+            }
+            dicts.Add(new ResourceDictionary { Source = new Uri($"{theme}.xaml", UriKind.Relative) });
+
+            //get target color from theme resource "Brush.Background"
+            var targetBrush = (SolidColorBrush)FindResource("Brush.Background");
+            var targetColor = targetBrush.Color;
+
+            //set a fresh brush so it's animatable (do NOT reuse a frozen brush)
+            var animBrush = new SolidColorBrush(oldColor);
+            this.Background = animBrush;
+
+            //animate color
+            var anim = new ColorAnimation
+            {
+                To = targetColor,
+                Duration = TimeSpan.FromMilliseconds(350),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
+            };
+            animBrush.BeginAnimation(SolidColorBrush.ColorProperty, anim);
+        }
+
+        private void LoadTheme()
+        {
+            // Always start with Light theme
+            ApplyTheme("Light");
+            ThemeToggle.IsChecked = false; // unchecked = Light, checked = Dark
+        }
+
+        // Event handler for all buttons
         private void OnButton(object sender, RoutedEventArgs e)
         {
             var token = (string)((Button)sender).Tag;
@@ -274,7 +317,7 @@ namespace calculator
 
                     case Key.OemMinus:
                         token = "-"; break;
-                    case Key.Oem2:          // '/' on many layouts (US)
+                    case Key.Oem2:
                         token = "/"; break;
                     case Key.OemPeriod:
                     case Key.OemComma:
@@ -324,6 +367,16 @@ namespace calculator
             MemoryFlag.Text = _controller.HasMemory ? "M" : "";
         }
 
-        // Special keys and NumPad
+        private void ThemeToggle_Checked(object sender, RoutedEventArgs e)
+        {
+            // Dark ON
+            ApplyTheme("Dark");
+        }
+
+        private void ThemeToggle_Unchecked(object sender, RoutedEventArgs e)
+        {
+            // Light ON
+            ApplyTheme("Light");
+        }
     }
 }
